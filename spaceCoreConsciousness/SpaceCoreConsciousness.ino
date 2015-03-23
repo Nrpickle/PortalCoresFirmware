@@ -13,7 +13,7 @@
 #define DEBUG
 
 
-SoftwareSerial ESPComm(11, 10); //Rx, Tx
+SoftwareSerial SOMOComm(11, 10); //Rx, Tx
 
 #define FEEDBACK 1
 #define NO_FEEDBACK 0
@@ -54,20 +54,40 @@ void setup(){
   
   #ifdef DEBUG
     Serial.begin(9600);
+    Serial.println("[Board Init]");
   #endif
+  
+  SOMOComm.begin(9600);
+  
+//  initDevice();
+  
+  //sendPacket(PLAY, FEEDBACK, 0x00, 0x00);
+  
+  byte readFromSDCard[8] = { 0x7E, 0x09, 0x00, 0x00, 0x02, 0xFF, 0xF5, 0xEF }; //Tells the SOMO to read from SD Card
+  
+  byte play[8] = { 0x7E, 0x0D, 0x00, 0x00, 0x00, 0xFF, 0xF3, 0xEF };  //Tells the SOMO to play the latest copied file
+  
+  SOMOComm.write(readFromSDCard, 9);
+  delay(20);
+  SOMOComm.write(play, 8);
+  
+  
 }
 
 //Main loop
 void loop(){
   
-  initDevice();
+  if(SOMOComm.available()){
+    Serial.print(SOMOComm.read() , HEX);
+    digitalWrite(13, HIGH);
+  }
   
-  while(1);
+  //while(1);
   
 }
 
 void initDevice(void){
-  sendPacket(VOLUME_NUMBER, NO_FEEDBACK, 0, 0x05);  //Sets the volume to 5
+  sendPacket(VOLUME_NUMBER, NO_FEEDBACK, 0, 0x10);  //Sets the volume to 16
 }
 
 //Sends a packet to the SOMO
@@ -94,23 +114,34 @@ void sendPacket(unsigned char cmd, unsigned char feedback, unsigned char para1, 
     Serial.println(" ");
   #endif
   
+  SOMOComm.write(start);
+  SOMOComm.write(cmd);
+  SOMOComm.write(feedback);
+  SOMOComm.write(para1);
+  SOMOComm.write(para2);
+  SOMOComm.write(checksum);
+  SOMOComm.write(end);
+  
+  
 }
 
 unsigned int calculateChecksum(unsigned char cmd, unsigned char feedback, unsigned char para1, unsigned char para2){
+  /*
   Serial.println(cmd, DEC);
   Serial.println(feedback, DEC);
   Serial.println(para1, DEC);
-  Serial.println(para2, DEC);
+  Serial.println(para2, DEC); 
+  */
   unsigned int calculation = 65535;
-  Serial.println(calculation, DEC);
+  //Serial.println(calculation, DEC);
   calculation -= (cmd + feedback + para1 + para2);
-  Serial.println(calculation, DEC);
+  //Serial.println(calculation, DEC);
   calculation += 1;
-  Serial.println(calculation, HEX);
+  //Serial.println(calculation, HEX);
   
   //int calculation = ( 65535 - ((short) cmd + (short) feedback + (short) para1 + (short) para2) + 1 );
   
-  Serial.println( 65535 - ((short) cmd + (short) feedback + (short) para1 + (short) para2) + 0x01 );
+  //Serial.println( 65535 - ((short) cmd + (short) feedback + (short) para1 + (short) para2) + 0x01 );
   
   //Serial.println(calculation, DEC);
   
