@@ -12,6 +12,8 @@
 
 #define DEBUG
 
+#define LONG_DELAY
+
 
 SoftwareSerial SOMOComm(11, 10); //Rx, Tx
 
@@ -137,16 +139,18 @@ void loop(){
   parsePacket(singlePlay);
   
   for(int i = 0; i < 38; ++i){
-    //delay(10000);  //Delay for 10 seconds
-    delay(3600000);  //Delay for an hour
+    #ifdef LONG_DELAY
+      delay(3600000);  //Delay for an hour
+      //Random delay
+      char fifteenMinutes = random(1, 12);
+      for(int i = 0; i < fifteenMinutes; ++i){
+        delay(540000);  //Delay for 15 minutes
+      }
+    #endif
     
-    //Random delay
-    
-    char fifteenMinutes = random(1, 12);
-    
-    for(int i = 0; i < fifteenMinutes; ++i){
-      delay(540000);  //Delay for 15 minutes
-    }
+    #ifndef LONG_DELAY
+      delay(10000);  //Delay for 10 seconds
+    #endif 
     
     parsePacket(next);
     parsePacket(play);
@@ -179,14 +183,14 @@ void sendPacket(unsigned char cmd, unsigned char feedback, unsigned char para1, 
   
   byte toSend[8] = {0};  //create the buffer to send, and initalize it to zero
   
-  byte[0] = start;
-  byte[1] = cmd;
-  byte[2] = feedback;
-  byte[3] = para1;
-  byte[4] = para2;
-  byte[5] = (checksum & 0xFF00) >> 8;
-  byte[6] = (checksum & 0x00FF);
-  byte[7] = end;
+  toSend[0] = start;
+  toSend[1] = cmd;
+  toSend[2] = feedback;
+  toSend[3] = para1;
+  toSend[4] = para2;
+  toSend[5] = (checksum & 0xFF00) >> 8;
+  toSend[6] = (checksum & 0x00FF);
+  toSend[7] = end;
   
   
   //parsePacket(toSend);
