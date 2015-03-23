@@ -47,6 +47,25 @@ enum Commands {
   QUERY_TRACKS_FOLDER = 0x4E
 };
 
+byte readFromSDCard[8] = { 0x7E, 0x09, 0x00, 0x00, 0x02, 0xFF, 0xF5, 0xEF }; //Tells the SOMO to read from SD Card
+
+byte play[8] = { 0x7E, 0x0D, 0x00, 0x00, 0x00, 0xFF, 0xF3, 0xEF };  //Tells the SOMO to play the latest copied file
+
+byte enableRandomMode[8] = { 0x7E, 0x18, 0x00, 0x00, 0x00, 0xFF, 0xE8, 0xEF }; //Enables random mode
+
+byte singlePlay[8] = { 0x7E, 0x19, 0x00, 0x00, 0x01, 0xFF, 0xE6, 0xEF }; //Sets single play mode
+
+byte next[8] = { 0x7E, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xEF }; //Increments to the next track
+
+byte specifyFirstTrack[8] = { 0x7E, 0x03, 0x00, 0x00, 0x01, 0xFF, 0xFC, 0xEF };  //Specify the first track
+
+byte specifyFirstTrackFolder1[8] = { 0x7E, 0x0F, 0x00, 0x01, 0x01, 0xFF, 0xEF, 0xEF };  //Specify the first track
+
+byte setVolumeTo5[8] = { 0x7E, 0x06, 0x00, 0x00, 0x05, 0xFF, 0xF5, 0xEF };  //Sets the volume to 5
+
+byte increaseVolume[8] = { 0x7E, 0x04, 0x00, 0x00, 0x00, 0xFF, 0xFC, 0xEF };  //Increases the volume
+
+
 //Setup function
 void setup(){
   pinMode(13, OUTPUT);
@@ -63,24 +82,55 @@ void setup(){
   
   //sendPacket(PLAY, FEEDBACK, 0x00, 0x00);
   
-  byte readFromSDCard[8] = { 0x7E, 0x09, 0x00, 0x00, 0x02, 0xFF, 0xF5, 0xEF }; //Tells the SOMO to read from SD Card
+
   
-  byte play[8] = { 0x7E, 0x0D, 0x00, 0x00, 0x00, 0xFF, 0xF3, 0xEF };  //Tells the SOMO to play the latest copied file
-  
-  SOMOComm.write(readFromSDCard, 9);
+  /*
+  SOMOComm.write(readFromSDCard, 8);
+  delay(20);
+  SOMOComm.write(enableRandomMode, 8);
   delay(20);
   SOMOComm.write(play, 8);
+  */
   
+  parsePacket(readFromSDCard);
+  parsePacket(setVolumeTo5);  //Whooo boy, this is bad
+  for(int i = 0; i < 20; ++i){
+    parsePacket(increaseVolume);
+  }
+  parsePacket(specifyFirstTrack);
+  parsePacket(singlePlay);
+  parsePacket(play);
   
+  /*
+  sendPacket(PLAY_SOURCE, NO_FEEDBACK, 0x00, 0x02);
+  
+  delay(20);
+  
+  sendPacket(PLAY, NO_FEEDBACK, 0x00, 0x00);
+  */
+  
+}
+
+void parsePacket(byte * input){
+  SOMOComm.write(input, 8);
+  delay(20);
 }
 
 //Main loop
 void loop(){
   
+  parsePacket(next);
+  parsePacket(play);
+  
+  delay(10000);
+  
+  
+  /*
   if(SOMOComm.available()){
     Serial.print(SOMOComm.read() , HEX);
     digitalWrite(13, HIGH);
   }
+  */
   
   //while(1);
   
@@ -94,7 +144,7 @@ void initDevice(void){
 void sendPacket(unsigned char cmd, unsigned char feedback, unsigned char para1, unsigned char para2){
   const unsigned char start = 0x7E;
   const unsigned char end = 0xEF;
-  unsigned int checksum = calculateChecksum(cmd, feedback, para1, para2);
+  unsigned short checksum = calculateChecksum(cmd, feedback, para1, para2);
   
   #ifdef DEBUG
     Serial.print("Command Sent: ");
@@ -113,6 +163,18 @@ void sendPacket(unsigned char cmd, unsigned char feedback, unsigned char para1, 
     Serial.print(end, HEX);
     Serial.println(" ");
   #endif
+  /*
+  byte toSend[8];
+  
+  byte[0] = start;
+  byte[1] = cmd;
+  byte[2] = feedback;
+  byte[3] = para1;
+  byte[4] = para2;
+  byte[5] = 
+  byte[6] = 
+  byte[7] = end;
+  */
   
   SOMOComm.write(start);
   SOMOComm.write(cmd);
