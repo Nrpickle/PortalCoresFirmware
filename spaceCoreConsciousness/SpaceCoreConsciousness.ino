@@ -65,6 +65,8 @@ byte setVolumeTo5[8] = { 0x7E, 0x06, 0x00, 0x00, 0x05, 0xFF, 0xF5, 0xEF };  //Se
 
 byte increaseVolume[8] = { 0x7E, 0x04, 0x00, 0x00, 0x00, 0xFF, 0xFC, 0xEF };  //Increases the volume
 
+byte setGlaDOSTaunt[8] = { 0x7E, 0x0F, 0x00, 0x02, 0x01, 0xFF, 0xEE, 0xEF }; //Selects file 001 in folder 02
+
 
 //Setup function
 void setup(){
@@ -97,9 +99,21 @@ void setup(){
   for(int i = 0; i < 20; ++i){
     parsePacket(increaseVolume);
   }
-  parsePacket(specifyFirstTrack);
+  
+  
+  //Play GlaDOS 
+  //parsePacket(specifyFirstTrack);
+  
+  
+  parsePacket(setGlaDOSTaunt);
   parsePacket(singlePlay);
   parsePacket(play);
+  
+  delay(5000);  //Wait for GlaDOS to stop talking
+  
+  //unsigned int calculateChecksum(unsigned char cmd, unsigned char feedback, unsigned char para1, unsigned char para2){
+    
+  //Serial.println(calculateChecksum(SPECIFY_FOLDER_AND_TRACK, NO_FEEDBACK, 0x02, 0x01), HEX);
   
   /*
   sendPacket(PLAY_SOURCE, NO_FEEDBACK, 0x00, 0x02);
@@ -119,10 +133,27 @@ void parsePacket(byte * input){
 //Main loop
 void loop(){
   
-  parsePacket(next);
-  parsePacket(play);
+  parsePacket(specifyFirstTrack);
+  parsePacket(singlePlay);
   
-  delay(10000);
+  for(int i = 0; i < 38; ++i){
+    //delay(10000);  //Delay for 10 seconds
+    delay(3600000);  //Delay for an hour
+    
+    //Random delay
+    
+    char fifteenMinutes = random(1, 12);
+    
+    for(int i = 0; i < fifteenMinutes; ++i){
+      delay(540000);  //Delay for 15 minutes
+    }
+    
+    parsePacket(next);
+    parsePacket(play);
+    
+    //delay(10000);
+  }
+  
   
   
   /*
