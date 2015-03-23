@@ -175,9 +175,29 @@ void initDevice(void){
 void sendPacket(unsigned char cmd, unsigned char feedback, unsigned char para1, unsigned char para2){
   const unsigned char start = 0x7E;
   const unsigned char end = 0xEF;
-  unsigned short checksum = calculateChecksum(cmd, feedback, para1, para2);
+  unsigned int checksum = calculateChecksum(cmd, feedback, para1, para2);
+  
+  byte toSend[8] = {0};  //create the buffer to send, and initalize it to zero
+  
+  byte[0] = start;
+  byte[1] = cmd;
+  byte[2] = feedback;
+  byte[3] = para1;
+  byte[4] = para2;
+  byte[5] = (checksum & 0xFF00) >> 8;
+  byte[6] = (checksum & 0x00FF);
+  byte[7] = end;
+  
+  
+  //parsePacket(toSend);
   
   #ifdef DEBUG
+    Serial.write(toSend, 8);
+    delay(20);
+  #endif
+  
+  #ifdef DEBUG
+  /*
     Serial.print("Command Sent: ");
     Serial.print(start, HEX);
     Serial.print(" ");
@@ -193,20 +213,11 @@ void sendPacket(unsigned char cmd, unsigned char feedback, unsigned char para1, 
     Serial.print(" ");
     Serial.print(end, HEX);
     Serial.println(" ");
-  #endif
-  /*
-  byte toSend[8];
-  
-  byte[0] = start;
-  byte[1] = cmd;
-  byte[2] = feedback;
-  byte[3] = para1;
-  byte[4] = para2;
-  byte[5] = 
-  byte[6] = 
-  byte[7] = end;
   */
+  #endif
   
+  
+  /*
   SOMOComm.write(start);
   SOMOComm.write(cmd);
   SOMOComm.write(feedback);
@@ -214,7 +225,7 @@ void sendPacket(unsigned char cmd, unsigned char feedback, unsigned char para1, 
   SOMOComm.write(para2);
   SOMOComm.write(checksum);
   SOMOComm.write(end);
-  
+  */
   
 }
 
